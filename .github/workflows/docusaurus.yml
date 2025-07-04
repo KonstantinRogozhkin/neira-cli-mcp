@@ -23,11 +23,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./neira-docs # Указываем рабочую директорию
+        working-directory: ../../neira-docs # Указываем рабочую директорию
 
       - name: Build Docusaurus site
         run: npm run build
-        working-directory: ./neira-docs # Указываем рабочую директорию
+        working-directory: ../../neira-docs # Указываем рабочую директорию
       
       # Если вы будете использовать GitHub Pages для деплоя,
       # вам нужно будет настроить 'actions/deploy-pages@v4'
