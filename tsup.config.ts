@@ -11,4 +11,5 @@ export default defineConfig({
   banner: {
     js: '#!/usr/bin/env node',
   },
+  external: ['express'], // исключаем express из бандла
 }); 

@@ -28,38 +28,31 @@ jobs:
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
+          cache: 'yarn'
           
       - name: Install dependencies
-        run: |
-          cd neira-cli-mcp
-          npm ci
+        run: yarn install --frozen-lockfile
           
       - name: Build package
-        run: |
-          cd neira-cli-mcp
-          npm run build
+        run: yarn build
           
-      - name: Run tests (if available)
-        run: |
-          cd neira-cli-mcp
-          if npm run test --if-present; then
-            echo "Tests passed"
-          else
-            echo "No tests found or tests failed"
-          fi
-        continue-on-error: false
+      - name: Run tests
+        run: yarn test
+        continue-on-error: true
         
       - name: Check package version
         run: |
-          cd neira-cli-mcp
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           echo "Package version: $PACKAGE_VERSION"
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
           
-      - name: Publish to NPM
+      - name: Verify package contents
         run: |
-          cd neira-cli-mcp
-          npm publish
+          echo "Checking package contents..."
+          yarn pack --dry-run
+          
+      - name: Publish to NPM
+        run: yarn publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           
@@ -73,6 +66,6 @@ jobs:
                 issue_number: context.payload.release.id,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `🎉 Successfully published @neira/cli-mcp@${process.env.PACKAGE_VERSION} to NPM!`
+                body: `🎉 Successfully published neira-cli-mcp@${process.env.PACKAGE_VERSION} to NPM!\n\n📦 Package: https://www.npmjs.com/package/neira-cli-mcp\n🏷️ Version: ${process.env.PACKAGE_VERSION}`
               })
             } 

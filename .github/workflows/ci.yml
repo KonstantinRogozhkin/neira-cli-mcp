@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+          
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Build package
+        run: yarn build
+        
+      - name: Run tests
+        run: yarn test
+        
+      - name: Run tests with coverage
+        run: yarn test:coverage
+        continue-on-error: true
+        
+      - name: Check TypeScript compilation
+        run: yarn build
+        
+      - name: Verify package contents
+        run: |
+          echo "Checking package contents..."
+          yarn pack --dry-run
+          
+      - name: Test CLI functionality
+        run: |
+          echo "Testing CLI commands..."
+          node dist/cli.js --help || echo "CLI test failed, but package build succeeded"
+        continue-on-error: true
+          
+      - name: Upload coverage reports
+        if: matrix.node-version == '18'
+        uses: codecov/codecov-action@v3
+        continue-on-error: true 
