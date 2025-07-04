@@ -12,15 +12,16 @@ const program = new Command();
 program
   .name('neira-cli-mcp')
   .description('CLI и MCP-сервер для разработки приложений NEIRA')
-  .version('0.2.0');
+  .version('0.3.0');
 
 // Команда создания приложения
 program
   .command('create <app-name>')
   .description('Создает новую структуру приложения NEIRA')
-  .action(async (appName: string) => {
+  .option('-d, --description <description>', 'Описание приложения')
+  .action(async (appName: string, options) => {
     try {
-      await createApp(appName);
+      await createApp(appName, options);
     } catch (error) {
       console.error(chalk.red('Ошибка при создании приложения:'), error);
       process.exit(1);

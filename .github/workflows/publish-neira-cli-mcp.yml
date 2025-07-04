@@ -1,12 +1,22 @@
-name: Publish to NPM
+name: Publish neira-cli-mcp to NPM
 
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'Package name to publish'
+        required: true
+        default: 'neira-cli-mcp'
+        type: choice
+        options:
+          - neira-cli-mcp
 
 jobs:
   publish:
+    # Запускаем только если релиз касается neira-cli-mcp
+    if: contains(github.event.release.tag_name, 'neira-cli-mcp') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     
     steps:
@@ -20,13 +30,18 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           
       - name: Install dependencies
-        run: npm ci
-        
+        run: |
+          cd neira-cli-mcp
+          npm ci
+          
       - name: Build package
-        run: npm run build
-        
+        run: |
+          cd neira-cli-mcp
+          npm run build
+          
       - name: Run tests (if available)
         run: |
+          cd neira-cli-mcp
           if npm run test --if-present; then
             echo "Tests passed"
           else
@@ -36,12 +51,15 @@ jobs:
         
       - name: Check package version
         run: |
+          cd neira-cli-mcp
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           echo "Package version: $PACKAGE_VERSION"
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
           
       - name: Publish to NPM
-        run: npm publish
+        run: |
+          cd neira-cli-mcp
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           
@@ -55,6 +73,6 @@ jobs:
                 issue_number: context.payload.release.id,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `🎉 Successfully published neira-cli-mcp@${process.env.PACKAGE_VERSION} to NPM!`
+                body: `🎉 Successfully published @neira/cli-mcp@${process.env.PACKAGE_VERSION} to NPM!`
               })
             } 

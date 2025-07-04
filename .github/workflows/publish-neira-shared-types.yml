@@ -1,0 +1,78 @@
+name: Publish neira-shared-types to NPM
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'Package name to publish'
+        required: true
+        default: 'neira-shared-types'
+        type: choice
+        options:
+          - neira-shared-types
+
+jobs:
+  publish:
+    # Запускаем только если релиз касается neira-shared-types
+    if: contains(github.event.release.tag_name, 'neira-shared-types') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: |
+          cd neira-shared-types
+          npm ci
+          
+      - name: Build package
+        run: |
+          cd neira-shared-types
+          npm run build
+          
+      - name: Run tests (if available)
+        run: |
+          cd neira-shared-types
+          if npm run test --if-present; then
+            echo "Tests passed"
+          else
+            echo "No tests found or tests failed"
+          fi
+        continue-on-error: false
+        
+      - name: Check package version
+        run: |
+          cd neira-shared-types
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "Package version: $PACKAGE_VERSION"
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+          
+      - name: Publish to NPM
+        run: |
+          cd neira-shared-types
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create success comment
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.payload.release) {
+              github.rest.issues.createComment({
+                issue_number: context.payload.release.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `🎉 Successfully published neira-shared-types@${process.env.PACKAGE_VERSION} to NPM!`
+              })
+            } 
