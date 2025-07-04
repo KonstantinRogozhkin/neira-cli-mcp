@@ -55,6 +55,6 @@ jobs:
                 issue_number: context.payload.release.id,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `🎉 Successfully published @neira/cli-mcp@${process.env.PACKAGE_VERSION} to NPM!`
+                body: `🎉 Successfully published neira-cli-mcp@${process.env.PACKAGE_VERSION} to NPM!`
               })
             } 

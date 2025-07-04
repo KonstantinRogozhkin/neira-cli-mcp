@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Скрипт для создания релизов @neira/cli-mcp
+# Скрипт для создания релизов neira-cli-mcp
 # Использование: ./scripts/release.sh <version-type>
 # Пример: ./scripts/release.sh patch
 
@@ -20,7 +20,7 @@ if [ "$VERSION_TYPE" != "patch" ] && [ "$VERSION_TYPE" != "minor" ] && [ "$VERSI
     exit 1
 fi
 
-echo "🚀 Создание релиза @neira/cli-mcp ($VERSION_TYPE)"
+echo "🚀 Создание релиза neira-cli-mcp ($VERSION_TYPE)"
 
 # Проверяем, что рабочая директория чистая
 if [ -n "$(git status --porcelain)" ]; then
