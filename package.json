@@ -38,5 +38,26 @@
     },
     "publishConfig": {
       "access": "public"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/KonstantinRogozhkin/neira-cli-mcp.git"
+    },
+    "homepage": "https://github.com/KonstantinRogozhkin/neira-cli-mcp",
+    "bugs": {
+      "url": "https://github.com/KonstantinRogozhkin/neira-cli-mcp/issues"
+    },
+    "keywords": [
+      "neira",
+      "cli",
+      "mcp",
+      "server",
+      "development",
+      "tools"
+    ],
+    "author": "NEIRA Team",
+    "license": "MIT",
+    "engines": {
+      "node": ">=16.0.0"
     }
 }
