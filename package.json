@@ -1,0 +1,42 @@
+{
+    "name": "@neira/cli-mcp",
+    "version": "0.2.0",
+    "type": "module",
+    "description": "Official CLI and MCP Server for developing applications for the NEIRA platform.",
+    "main": "dist/cli.js",
+    "types": "dist/cli.d.ts",
+    "bin": {
+      "neira-cli-mcp": "dist/cli.js"
+    },
+    "files": [
+      "dist/",
+      "templates/"
+    ],
+    "scripts": {
+      "dev": "tsup --watch",
+      "build": "tsup",
+      "start": "node dist/cli.js"
+    },
+    "dependencies": {
+      "chalk": "^5.3.0",
+      "commander": "^12.1.0",
+      "fs-extra": "^11.2.0",
+      "inquirer": "^9.2.23",
+      "express": "^4.19.2",
+      "cors": "^2.8.5",
+      "ws": "^8.17.0"
+    },
+    "devDependencies": {
+      "tsup": "^8.1.0",
+      "typescript": "^5.4.5",
+      "@types/fs-extra": "^11.0.4",
+      "@types/inquirer": "^9.0.7",
+      "@types/node": "^20.14.2",
+      "@types/express": "^4.17.21",
+      "@types/cors": "^2.8.17",
+      "@types/ws": "^8.5.10"
+    },
+    "publishConfig": {
+      "access": "public"
+    }
+}

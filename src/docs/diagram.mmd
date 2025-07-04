@@ -1,0 +1,33 @@
+graph TD
+    classDef action fill:#BBDEFB,stroke:#1976D2,stroke-width:2px,color:#000;
+    classDef cli fill:#FFECB3,stroke:#FFA000,stroke-width:4px,color:#000;
+    classDef artifact fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000;
+    classDef repo fill:#D1C4E9,stroke:#512DA8,stroke-width:2px,color:#000;
+
+    subgraph "Шаг 1: Локальная Разработка"
+        direction LR
+        A1["🧑‍💻 Разработчик<br/>Придумывает идею"] --> C1;
+        C1(<b>neira-cli create my-app</b>):::cli;
+        C1 --> A2{"Создается структура проекта<br/>(папки, neira-app.json)"};
+        A2 --> A3["Пишет код<br/>приложения"];
+        A3 --> C2(<b>neira-cli validate</b>):::cli;
+        C2 --> A4["Проверяет манифест<br/>на ошибки"];
+        A4 --> C3(<b>neira-cli package</b>):::cli;
+        C3 --> AR1["📦 my-app.npx<br/>(Подписанный пакет)"]:::artifact;
+    end
+
+    subgraph "Шаг 2: Публикация на GitHub"
+        direction LR
+        AR1 --> A5["Создает релиз на GitHub<br/>в своем репозитории"];
+        A5 --> AR2["🔗 Публичная ссылка<br/>на скачивание .npx"]:::artifact
+    end
+
+    subgraph "Шаг 3: Добавление в Маркетплейс"
+        direction LR
+        AR2 --> A6["Делает Pull Request<br/>в <b>neira-apps</b>"];
+        A6 --> R_APPS(<b>neira-apps</b><br/>Репозиторий-реестр):::repo
+        R_APPS --> A7["✅ Ревью и мерж<br/>от команды NEIRA"];
+        A7 --> FINAL("🎉 Приложение<br/>появляется в Маркетплейсе!")
+    end
+
+    style FINAL fill:#C8E6C9,stroke:#388E3C,stroke-width:4px,color:#000
