@@ -1,6 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import chalk from 'chalk';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Создает новое приложение NEIRA на основе шаблона
@@ -9,7 +13,7 @@ export async function createApp(appName: string, options: { description?: string
   console.log(chalk.blue(`🚀 Создание приложения "${appName}"...`));
 
   const appDir = path.join(process.cwd(), appName);
-  const templateDir = path.join(__dirname, 'basic-app');
+  const templateDir = path.join(__dirname, '..', '..', 'templates', 'basic-app');
 
   // Проверяем, что директория не существует
   if (fs.existsSync(appDir)) {
