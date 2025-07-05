@@ -4,6 +4,7 @@ import { createApp } from './commands/create';
 import { devServer } from './commands/dev';
 import { validateApp } from './commands/validate';
 import { packageApp } from './commands/package';
+import { exportCode, EXPORT_PROFILES } from './commands/export';
 
 const program = new Command();
 
@@ -62,6 +63,49 @@ program
       await packageApp();
     } catch (error) {
       console.error(chalk.red('Ошибка при упаковке:'), error);
+      process.exit(1);
+    }
+  });
+
+// Команда экспорта кода
+program
+  .command('export [profile]')
+  .description('Экспортирует код проекта в markdown файл для анализа')
+  .option('-o, --output <filename>', 'Имя выходного файла')
+  .option('-f, --force', 'Перезаписать существующий файл')
+  .option('--list-profiles', 'Показать доступные профили')
+  .action(async (profile: string, options) => {
+    try {
+      // Показываем список профилей
+      if (options.listProfiles) {
+        console.log(chalk.blue('📋 Доступные профили экспорта:'));
+        console.log('');
+        for (const [key, description] of Object.entries(EXPORT_PROFILES)) {
+          console.log(`  ${chalk.cyan(key.padEnd(12))} ${description}`);
+        }
+        console.log('');
+        console.log(chalk.gray('💡 Использование: neira-cli-mcp export <profile>'));
+        console.log(chalk.gray('   Пример: neira-cli-mcp export general'));
+        return;
+      }
+      
+      // Используем 'general' как профиль по умолчанию
+      const selectedProfile = profile || 'general';
+      
+      // Проверяем валидность профиля
+      if (!EXPORT_PROFILES[selectedProfile as keyof typeof EXPORT_PROFILES]) {
+        console.error(chalk.red(`Неизвестный профиль: ${selectedProfile}`));
+        console.log(chalk.gray('Используйте --list-profiles для просмотра доступных профилей'));
+        process.exit(1);
+      }
+      
+      await exportCode({
+        profile: selectedProfile as keyof typeof EXPORT_PROFILES,
+        output: options.output,
+        force: options.force
+      });
+    } catch (error) {
+      console.error(chalk.red('Ошибка при экспорте:'), error);
       process.exit(1);
     }
   });

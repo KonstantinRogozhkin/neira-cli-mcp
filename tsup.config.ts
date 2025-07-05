@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: ['src/cli.ts'],
-  format: ['esm'],
+  format: ['cjs'],
   dts: true,
   clean: true,
   minify: false,
@@ -11,5 +11,7 @@ export default defineConfig({
   banner: {
     js: '#!/usr/bin/env node',
   },
-  external: ['express'], // исключаем express из бандла
+  external: [], // включаем все зависимости в бандл
+  platform: 'node',
+  shims: true, // добавляем shims для Node.js
 }); 
