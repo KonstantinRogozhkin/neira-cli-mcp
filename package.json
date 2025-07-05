@@ -1,6 +1,6 @@
 {
   "name": "neira-cli-mcp",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "CLI для создания и управления NEIRA приложениями",
   "type": "module",
   "main": "dist/cli.cjs",
