@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "neira-dev": {
+      "command": "neira-cli-mcp",
+      "args": ["dev"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  }
+} 

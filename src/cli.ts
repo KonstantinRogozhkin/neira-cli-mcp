@@ -27,16 +27,15 @@ program
     }
   });
 
-// Команда запуска dev-сервера
+// Команда запуска MCP dev-сервера
 program
   .command('dev')
-  .description('Запускает локальный MCP-сервер для разработки')
-  .option('-p, --port <port>', 'Порт для сервера', '4242')
-  .action(async (options) => {
+  .description('Запускает MCP-сервер для разработки NEIRA приложений')
+  .action(async () => {
     try {
-      await devServer(parseInt(options.port));
+      await devServer();
     } catch (error) {
-      console.error(chalk.red('Ошибка при запуске dev-сервера:'), error);
+      console.error(chalk.red('Ошибка при запуске MCP сервера:'), error);
       process.exit(1);
     }
   });
