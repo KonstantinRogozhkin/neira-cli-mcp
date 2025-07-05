@@ -71,6 +71,7 @@ const COMMON_EXCLUDES = [
   
   // === КОНФИГУРАЦИОННЫЕ И СЛУЖЕБНЫЕ ФАЙЛЫ ===
   "**/public/**", "**/drizzle/**", "**/*tmp.iconset*/**",
+  "**/storybook-static/**", // Статические файлы Storybook
   "*.backup", "*.yml", "*.yaml", "**/*archive*/**", "**/*temp_knowledge*/**",
   "**/*openrouter-models.json*", "*.webpack*",
   "*package-lock.json", "*yarn.lock", "*.pnp.cjs", "*.pnp.js", "*.pnp.loader.mjs",

@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
 import { z } from 'zod';
+import glob from 'fast-glob';
 
 /**
  * Интерфейс для манифеста NEIRA приложения
@@ -125,8 +126,7 @@ export async function devServer() {
     },
     async ({ pattern }) => {
       try {
-        const glob = await import('fast-glob');
-        const files = await glob.default(pattern || '**/*', {
+        const files = await glob(pattern || '**/*', {
           cwd: process.cwd(),
           ignore: ['node_modules/**', 'dist/**', '.git/**'],
           onlyFiles: true

@@ -3,3 +3,6 @@ node_modules/*
 dist/*
 .DS_Store
 neira-cli-mcp-0.3.0.tgz
+.yarn
+**/.yarn/*
+.yarn/install-state.gz
