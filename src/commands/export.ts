@@ -246,6 +246,8 @@ function buildCode2PromptArgs(
       break;
     case 'all':
       // Для 'all' не добавляем дополнительные включения
+      // Исключаем тяжёлые исходники LibreChat UI, чтобы сократить объём выгрузки
+      args.push('-e', 'neira-core/packages/apps/librechat-ui/src/**');
       break;
     default:
       // Проверяем, является ли профиль динамическим пакетом
