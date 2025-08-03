@@ -312,6 +312,7 @@ async function exportDocumentation(options: {
   const { projectRoot, outputFile, force = false } = options;
   
   console.log(chalk.blue('📚 Создание выгрузки документации...'));
+  console.log(chalk.gray(`Проект: ${projectRoot}`));
   
   // Проверяем, существует ли файл (если не force)
   if (!force) {
@@ -332,15 +333,32 @@ async function exportDocumentation(options: {
   ];
   
   // Проверяем существование основных документационных файлов
-  const potentialIncludes = ['README.md', 'CLAUDE.md', 'docs', 'src/docs', 'documentation'];
-  for (const include of potentialIncludes) {
+  const potentialFiles = ['README.md', 'CLAUDE.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'LICENSE.md', 'LICENSE'];
+  const potentialDirs = ['docs', 'src/docs', 'documentation', 'doc'];
+  
+  // Добавляем отдельные файлы
+  for (const include of potentialFiles) {
     try {
       const includePath = path.join(projectRoot, include);
       await fs.access(includePath);
       args.push('-i', include);
       console.log(chalk.gray(`Добавлен в документацию: ${include}`));
     } catch {
-      // Файл/папка не существует, пропускаем
+      // Файл не существует, пропускаем
+    }
+  }
+  
+  // Добавляем папки с их содержимым
+  for (const dir of potentialDirs) {
+    try {
+      const dirPath = path.join(projectRoot, dir);
+      const stat = await fs.stat(dirPath);
+      if (stat.isDirectory()) {
+        args.push('-i', `${dir}/**/*`);
+        console.log(chalk.gray(`Добавлена папка в документацию: ${dir}/**/*`));
+      }
+    } catch {
+      // Папка не существует, пропускаем
     }
   }
   
@@ -570,7 +588,7 @@ async function exportCurrentProject(options: {
   const docOutputFile = path.join(versionDir, docFileName);
   
   await exportDocumentation({
-    projectRoot,
+    projectRoot: process.cwd(),
     outputFile: docOutputFile,
     force
   });
@@ -673,7 +691,7 @@ export async function exportCode(options: {
   const docOutputFile = path.join(versionDir, docFileName);
   
   await exportDocumentation({
-    projectRoot,
+    projectRoot: process.cwd(),
     outputFile: docOutputFile,
     force
   });
