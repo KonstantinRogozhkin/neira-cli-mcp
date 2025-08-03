@@ -97,6 +97,30 @@ const COMMON_EXCLUDES = [
 ];
 
 /**
+ * Читает файл .exportignore и возвращает список дополнительных исключений
+ */
+async function readExportIgnore(projectRoot: string): Promise<string[]> {
+  const exportIgnorePath = path.join(projectRoot, '.exportignore');
+  
+  try {
+    const content = await fs.readFile(exportIgnorePath, 'utf-8');
+    const patterns = content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#')); // Игнорируем пустые строки и комментарии
+    
+    if (patterns.length > 0) {
+      console.log(chalk.gray(`📋 Найден .exportignore с ${patterns.length} правилами`));
+    }
+    
+    return patterns;
+  } catch (error) {
+    // Файл .exportignore не найден или не читается - это нормально
+    return [];
+  }
+}
+
+/**
  * Проверяет, установлен ли code2prompt
  */
 async function checkCode2Prompt(): Promise<boolean> {
@@ -198,12 +222,18 @@ function buildCode2PromptArgs(
   projectRoot: string,
   profile: ExportProfile,
   outputFile: string,
-  dynamicPackages: string[]
+  dynamicPackages: string[],
+  additionalExcludes: string[] = []
 ): string[] {
   const args = [projectRoot, '--no-clipboard', '-O', outputFile];
   
-  // Добавляем исключения
+  // Добавляем стандартные исключения
   for (const exclude of COMMON_EXCLUDES) {
+    args.push('-e', exclude);
+  }
+  
+  // Добавляем дополнительные исключения из .exportignore
+  for (const exclude of additionalExcludes) {
     args.push('-e', exclude);
   }
   
@@ -396,38 +426,56 @@ async function exportCurrentProject(options: {
     }
   }
   
+  // Читаем дополнительные исключения из .exportignore
+  const additionalExcludes = await readExportIgnore(projectRoot);
+  
   console.log(chalk.blue('📝 Параметры экспорта:'));
   console.log(`   Проект: ${projectName}`);
   console.log(`   Выходной файл: ${outputFile}`);
+  if (additionalExcludes.length > 0) {
+    console.log(`   Дополнительные исключения: ${additionalExcludes.length} правил из .exportignore`);
+  }
   console.log('----------------------------------------');
   
   // Строим аргументы для code2prompt
+  const basicExcludes = [
+    'node_modules',
+    'dist',
+    '.git',
+    '*.log',
+    '*.map',
+    '*.lock',
+    '*.DS_Store',
+    '.idea',
+    '.vscode',
+    'coverage',
+    '.next',
+    'build',
+    'out',
+    '.turbo',
+    'tmp',
+    'temp',
+    '.cache',
+    '*.tsbuildinfo',
+    '*.tgz',
+    '*.tar.gz'
+  ];
+  
   const args = [
     '.', // Используем относительный путь
     '--no-clipboard',
-    '-O', outputFile,
-    // Основные исключения (упрощенные паттерны)
-    '-e', 'node_modules',
-    '-e', 'dist',
-    '-e', '.git',
-    '-e', '*.log',
-    '-e', '*.map',
-    '-e', '*.lock',
-    '-e', '*.DS_Store',
-    '-e', '.idea',
-    '-e', '.vscode',
-    '-e', 'coverage',
-    '-e', '.next',
-    '-e', 'build',
-    '-e', 'out',
-    '-e', '.turbo',
-    '-e', 'tmp',
-    '-e', 'temp',
-    '-e', '.cache',
-    '-e', '*.tsbuildinfo',
-    '-e', '*.tgz',
-    '-e', '*.tar.gz'
+    '-O', outputFile
   ];
+  
+  // Добавляем базовые исключения
+  for (const exclude of basicExcludes) {
+    args.push('-e', exclude);
+  }
+  
+  // Добавляем дополнительные исключения из .exportignore
+  for (const exclude of additionalExcludes) {
+    args.push('-e', exclude);
+  }
   
   console.log(chalk.blue('⚙️  Запуск code2prompt...'));
   
@@ -485,6 +533,9 @@ export async function exportCode(options: {
   // Получаем динамические пакеты
   const dynamicPackages = await getDynamicPackages(projectRoot);
   
+  // Читаем дополнительные исключения из .exportignore
+  const additionalExcludes = await readExportIgnore(projectRoot);
+  
   // Создаем директорию для экспорта
   const exportDir = path.join(projectRoot, '.neira', 'export_code');
   const datePrefix = new Date().toISOString().slice(0, 10).replace(/-/g, '-');
@@ -512,10 +563,13 @@ export async function exportCode(options: {
   console.log(`   Профиль: ${profile}`);
   console.log(`   Описание: ${EXPORT_PROFILES[profile] || 'Динамический пакет'}`);
   console.log(`   Выходной файл: ${outputFile}`);
+  if (additionalExcludes.length > 0) {
+    console.log(`   Дополнительные исключения: ${additionalExcludes.length} правил из .exportignore`);
+  }
   console.log('----------------------------------------');
   
   // Строим аргументы для code2prompt
-  const args = buildCode2PromptArgs(projectRoot, profile, outputFile, dynamicPackages);
+  const args = buildCode2PromptArgs(projectRoot, profile, outputFile, dynamicPackages, additionalExcludes);
   
   console.log(chalk.blue('⚙️  Запуск code2prompt...'));
   
