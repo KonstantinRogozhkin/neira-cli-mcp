@@ -106,11 +106,14 @@ program
           mapOutput = path.join(dir, `${baseName}_MAP.txt`);
         }
         
+        // Для экспорта текущего проекта создаём карту только текущей директории
+        const currentDir = process.cwd();
+        
         await generateRepositoryMap({
           output: mapOutput,
           force: options.force,
-          include: ['**/*.ts', '**/*.tsx', '**/*.py', '**/*.js', '**/*.jsx'],
-          exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/__pycache__/**', '**/*.pyc', '**/build/**', '**/coverage/**']
+          include: [`${currentDir}/**/*.ts`, `${currentDir}/**/*.tsx`, `${currentDir}/**/*.py`, `${currentDir}/**/*.js`, `${currentDir}/**/*.jsx`],
+          exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/__pycache__/**', '**/*.pyc', '**/build/**', '**/coverage/**', '**/.neira/**', '**/venv/**']
         });
         
         console.log(chalk.green('✅ Экспорт и карта репозитория созданы успешно!'));

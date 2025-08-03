@@ -915,6 +915,17 @@ function parseTypeScriptFile(content: string, filePath: string): FileStructure {
       const isExported = line.startsWith('export');
       const isAsync = line.includes('async');
       
+      // Для стрелочных функций используем приблизительный endLine (до следующей пустой строки или конца блока)
+      let endLine = lineNumber + 1;
+      for (let j = i + 1; j < lines.length && j < i + 50; j++) { // ограничиваем поиск 50 строками
+        const nextLine = lines[j].trim();
+        if (nextLine === '' || (!nextLine.startsWith(' ') && !nextLine.startsWith('\t'))) {
+          endLine = j;
+          break;
+        }
+        endLine = j + 1;
+      }
+      
       structure.functions.push({
         name,
         type: isAsync ? 'async' : 'arrow',
@@ -925,6 +936,7 @@ function parseTypeScriptFile(content: string, filePath: string): FileStructure {
         line: lineNumber,
         isExported,
         isDefault: line.includes('export default'),
+        linesOfCode: endLine - lineNumber,
         businessLogic: analyzeBusinessLogic(content, lineNumber, endLine),
         errorHandling: analyzeErrorHandling(content, lineNumber, endLine),
         dataFlow: analyzeDataFlow(content, lineNumber, endLine),
