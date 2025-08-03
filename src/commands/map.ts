@@ -1624,12 +1624,12 @@ export async function generateRepositoryMap(options: {
   include?: string[];
   exclude?: string[];
 }): Promise<void> {
-  const { output, force = false, include = ['src/**/*.ts', 'src/**/*.py'], exclude = ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/__pycache__/**', '**/*.pyc'] } = options;
+  const { output, force = false, include = ['**/*.ts', '**/*.tsx', '**/*.py', '**/*.js', '**/*.jsx'], exclude = ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/__pycache__/**', '**/*.pyc', '**/build/**', '**/coverage/**'] } = options;
   
   console.log(chalk.blue('🗺️  Генерация карты репозитория...'));
   
-  // Находим все TypeScript и Python файлы
-  const patterns = include.length > 0 ? include : ['src/**/*.ts', 'src/**/*.py'];
+  // Находим все поддерживаемые файлы
+  const patterns = include.length > 0 ? include : ['**/*.ts', '**/*.tsx', '**/*.py', '**/*.js', '**/*.jsx'];
   const files: string[] = [];
   
   for (const pattern of patterns) {
@@ -1646,7 +1646,7 @@ export async function generateRepositoryMap(options: {
     try {
       const content = await fs.readFile(file, 'utf-8');
       let structure: FileStructure;
-      if (file.endsWith('.ts') || file.endsWith('.tsx')) {
+      if (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.js') || file.endsWith('.jsx')) {
         structure = parseTypeScriptFile(content, file);
       } else if (file.endsWith('.py')) {
         structure = parsePythonFile(content, file);
@@ -1664,7 +1664,7 @@ export async function generateRepositoryMap(options: {
   const mapContent = generateMapContent(fileStructures);
   
   // Определяем путь для сохранения
-  const outputPath = output || path.join(process.cwd(), 'REPOSITORY_MAP.md');
+  const outputPath = output || path.join(process.cwd(), 'REPOSITORY_MAP.txt');
   
   // Проверяем, существует ли файл
   if (!force) {

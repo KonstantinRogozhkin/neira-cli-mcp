@@ -4,7 +4,6 @@ import path from 'path';
 import { createApp } from './commands/create';
 import { devServer } from './commands/dev';
 import { validateApp } from './commands/validate';
-import { packageApp } from './commands/package';
 import { exportCode, EXPORT_PROFILES } from './commands/export';
 import { generateRepositoryMap } from './commands/map';
 
@@ -55,18 +54,6 @@ program
     }
   });
 
-// Команда упаковки
-program
-  .command('package')
-  .description('Собирает приложение в .npx пакет')
-  .action(async () => {
-    try {
-      await packageApp();
-    } catch (error) {
-      console.error(chalk.red('Ошибка при упаковке:'), error);
-      process.exit(1);
-    }
-  });
 
 // Команда экспорта кода
 program
@@ -106,24 +93,24 @@ program
         console.log(chalk.blue('🗺️  Создание карты репозитория...'));
         
         // Определяем имя файла карты на основе экспортного файла
-        let mapOutput = 'REPOSITORY_MAP.md';
+        let mapOutput = 'REPOSITORY_MAP.txt';
         if (exportFilePath) {
           const exportPath = exportFilePath;
           const dir = path.dirname(exportPath);
           const baseName = path.basename(exportPath, path.extname(exportPath));
-          mapOutput = path.join(dir, `${baseName}_MAP.md`);
+          mapOutput = path.join(dir, `${baseName}_MAP.txt`);
         } else if (options.output) {
           const exportPath = options.output;
           const dir = path.dirname(exportPath);
           const baseName = path.basename(exportPath, path.extname(exportPath));
-          mapOutput = path.join(dir, `${baseName}_MAP.md`);
+          mapOutput = path.join(dir, `${baseName}_MAP.txt`);
         }
         
         await generateRepositoryMap({
           output: mapOutput,
           force: options.force,
-          include: ['src/**/*.ts', 'src/**/*.py'],
-          exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/__pycache__/**', '**/*.pyc']
+          include: ['**/*.ts', '**/*.tsx', '**/*.py', '**/*.js', '**/*.jsx'],
+          exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/__pycache__/**', '**/*.pyc', '**/build/**', '**/coverage/**']
         });
         
         console.log(chalk.green('✅ Экспорт и карта репозитория созданы успешно!'));
@@ -156,13 +143,13 @@ program
 program
   .command('map')
   .description('Генерирует карту репозитория с структурой функций, классов и их документацией')
-  .option('-o, --output <filename>', 'Имя выходного файла (по умолчанию: REPOSITORY_MAP.md)')
+  .option('-o, --output <filename>', 'Имя выходного файла (по умолчанию: REPOSITORY_MAP.txt)')
   .option('-f, --force', 'Перезаписать существующий файл')
-  .option('-i, --include <patterns>', 'Включить файлы по паттернам (через запятую)', 'src/**/*.ts,src/**/*.py')
+  .option('-i, --include <patterns>', 'Включить файлы по паттернам (через запятую)', '**/*.ts,**/*.tsx,**/*.py,**/*.js,**/*.jsx')
   .option('-e, --exclude <patterns>', 'Исключить файлы по паттернам (через запятую)', '**/node_modules/**,**/dist/**,**/.git/**,**/__pycache__/**,**/*.pyc')
   .action(async (options) => {
     try {
-      const includePatterns = options.include ? options.include.split(',').map((p: string) => p.trim()) : ['src/**/*.ts', 'src/**/*.py'];
+      const includePatterns = options.include ? options.include.split(',').map((p: string) => p.trim()) : ['**/*.ts', '**/*.tsx', '**/*.py', '**/*.js', '**/*.jsx'];
       const excludePatterns = options.exclude ? options.exclude.split(',').map((p: string) => p.trim()) : ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/__pycache__/**', '**/*.pyc'];
       
       await generateRepositoryMap({
