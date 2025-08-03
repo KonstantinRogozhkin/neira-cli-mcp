@@ -542,11 +542,24 @@ async function exportCurrentProject(options: {
     'templates'
   ];
   
-  // Динамически находим все .md и .mmd файлы для исключения
+  // Динамически находим все .md и .mmd файлы для исключения (с учётом .exportignore)
   try {
     const { glob } = await import('glob');
-    const mdFiles = await glob('**/*.md', { cwd: projectRoot });
-    const mmdFiles = await glob('**/*.mmd', { cwd: projectRoot });
+    
+    // Создаём список игнорируемых паттернов для glob
+    const ignorePatterns = [
+      ...criticalExcludes.map(p => `**/${p}/**`),
+      ...additionalExcludes.map(p => p.includes('**') ? p : `**/${p}/**`)
+    ];
+    
+    const mdFiles = await glob('**/*.md', { 
+      cwd: projectRoot,
+      ignore: ignorePatterns
+    });
+    const mmdFiles = await glob('**/*.mmd', { 
+      cwd: projectRoot,
+      ignore: ignorePatterns
+    });
     
     // Добавляем найденные файлы к исключениям
     for (const file of [...mdFiles, ...mmdFiles]) {
