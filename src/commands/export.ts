@@ -413,7 +413,7 @@ async function runCode2Prompt(args: string[]): Promise<void> {
     
     const child = spawn(spawnCommand, spawnArgs, { 
       stdio: ['pipe', 'pipe', 'pipe'],
-      shell: true
+      shell: false // Отключаем shell для более точной обработки аргументов
     });
     
     let stdout = '';
