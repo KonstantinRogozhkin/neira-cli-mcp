@@ -1,6 +1,6 @@
 {
   "name": "neira-cli-mcp",
-  "version": "0.3.1",
+  "version": "0.3.9",
   "description": "CLI для создания и управления NEIRA приложениями",
   "type": "module",
   "main": "dist/cli.cjs",
@@ -23,6 +23,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.0",
     "chalk": "4",
+    "code2prompt": "^1.1.4",
     "commander": "^14.0.0",
     "fast-glob": "^3.3.3",
     "fs-extra": "^11.3.0",

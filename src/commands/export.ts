@@ -101,11 +101,39 @@ const COMMON_EXCLUDES = [
  */
 async function checkCode2Prompt(): Promise<boolean> {
   return new Promise((resolve) => {
-    const child = spawn('code2prompt', ['--version'], { stdio: 'pipe' });
-    child.on('close', (code) => {
-      resolve(code === 0);
+    console.log(chalk.gray('Проверка наличия code2prompt...'));
+    
+    const child = spawn('code2prompt', ['--version'], { 
+      stdio: 'pipe',
+      shell: true 
     });
-    child.on('error', () => {
+    
+    let stdout = '';
+    let stderr = '';
+    
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+    
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+    
+    child.on('close', (code) => {
+      if (code === 0) {
+        console.log(chalk.green(`✅ code2prompt найден: ${stdout.trim()}`));
+        resolve(true);
+      } else {
+        console.log(chalk.red(`❌ code2prompt не найден (код: ${code})`));
+        if (stderr) {
+          console.log(chalk.gray(`Ошибка: ${stderr.trim()}`));
+        }
+        resolve(false);
+      }
+    });
+    
+    child.on('error', (error) => {
+      console.log(chalk.red(`❌ Ошибка при проверке code2prompt: ${error.message}`));
       resolve(false);
     });
   });
@@ -266,19 +294,39 @@ function buildCode2PromptArgs(
  */
 async function runCode2Prompt(args: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
+    console.log(chalk.gray(`Запуск: code2prompt ${args.join(' ')}`));
+    
     const child = spawn('code2prompt', args, { 
-      stdio: ['pipe', 'pipe', 'pipe'] 
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: true
+    });
+    
+    let stdout = '';
+    let stderr = '';
+    
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+    
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
     });
     
     child.on('close', (code) => {
       if (code === 0) {
+        console.log(chalk.green('✅ code2prompt выполнен успешно'));
         resolve();
       } else {
+        console.log(chalk.red(`❌ code2prompt завершился с кодом ${code}`));
+        if (stderr) {
+          console.log(chalk.gray(`Ошибка: ${stderr.trim()}`));
+        }
         reject(new Error(`code2prompt завершился с кодом ${code}`));
       }
     });
     
     child.on('error', (error) => {
+      console.log(chalk.red(`❌ Ошибка при запуске code2prompt: ${error.message}`));
       reject(error);
     });
   });
@@ -298,13 +346,113 @@ async function estimateTokens(filePath: string): Promise<number> {
 }
 
 /**
+ * Экспортирует текущий проект (не Super App)
+ */
+async function exportCurrentProject(options: {
+  output?: string;
+  force?: boolean;
+}): Promise<string> {
+  const { output, force = false } = options;
+  
+  console.log(chalk.blue('🚀 Запуск экспорта текущего проекта...'));
+  
+  // Проверяем наличие code2prompt
+  const hasCode2Prompt = await checkCode2Prompt();
+  if (!hasCode2Prompt) {
+    console.log(chalk.yellow('\n💡 Способы установки code2prompt:'));
+    console.log(chalk.gray('   npm install -g code2prompt'));
+    console.log(chalk.gray('   yarn global add code2prompt'));
+    console.log(chalk.gray('   pnpm add -g code2prompt'));
+    console.log(chalk.gray('   brew install code2prompt (macOS)'));
+    throw new Error(
+      'code2prompt не найден. Установите его одним из способов выше.'
+    );
+  }
+  
+  const projectRoot = process.cwd();
+  console.log(chalk.gray(`Текущий проект: ${projectRoot}`));
+  
+  // Создаем директорию для экспорта
+  const exportDir = path.join(projectRoot, '.neira', 'export_code');
+  const datePrefix = new Date().toISOString().slice(0, 10).replace(/-/g, '-');
+  const timePrefix = new Date().toTimeString().slice(0, 5).replace(':', '');
+  
+  const versionDir = path.join(exportDir, datePrefix, `v${timePrefix}`);
+  await fs.mkdir(versionDir, { recursive: true });
+  
+  // Определяем имя выходного файла
+  const projectName = path.basename(projectRoot);
+  const outputFileName = output || `v${timePrefix}-${datePrefix}-${projectName}.md`;
+  const outputFile = path.join(versionDir, outputFileName);
+  
+  // Проверяем, существует ли файл (если не force)
+  if (!force) {
+    try {
+      await fs.access(outputFile);
+      console.log(chalk.yellow(`Файл ${outputFileName} уже существует. Используйте --force для перезаписи.`));
+      return outputFile;
+    } catch {
+      // Файл не существует, продолжаем
+    }
+  }
+  
+  console.log(chalk.blue('📝 Параметры экспорта:'));
+  console.log(`   Проект: ${projectName}`);
+  console.log(`   Выходной файл: ${outputFile}`);
+  console.log('----------------------------------------');
+  
+  // Строим аргументы для code2prompt
+  const args = [
+    '.', // Используем относительный путь
+    '--no-clipboard',
+    '-O', outputFile,
+    // Основные исключения (упрощенные паттерны)
+    '-e', 'node_modules',
+    '-e', 'dist',
+    '-e', '.git',
+    '-e', '*.log',
+    '-e', '*.map',
+    '-e', '*.lock',
+    '-e', '*.DS_Store',
+    '-e', '.idea',
+    '-e', '.vscode',
+    '-e', 'coverage',
+    '-e', '.next',
+    '-e', 'build',
+    '-e', 'out',
+    '-e', '.turbo',
+    '-e', 'tmp',
+    '-e', 'temp',
+    '-e', '.cache',
+    '-e', '*.tsbuildinfo',
+    '-e', '*.tgz',
+    '-e', '*.tar.gz'
+  ];
+  
+  console.log(chalk.blue('⚙️  Запуск code2prompt...'));
+  
+  // Запускаем code2prompt
+  await runCode2Prompt(args);
+  
+  // Подсчитываем размер файла
+  const tokens = await estimateTokens(outputFile);
+  
+  console.log(chalk.green('✅ Экспорт завершен успешно!'));
+  console.log(chalk.blue('📊 Результат:'));
+  console.log(`   Размер: ~${tokens}k токенов`);
+  console.log(`   Файл: ${outputFile}`);
+  
+  return outputFile;
+}
+
+/**
  * Основная функция экспорта кода
  */
 export async function exportCode(options: {
   profile: ExportProfile;
   output?: string;
   force?: boolean;
-}): Promise<void> {
+}): Promise<string | void> {
   const { profile, output, force = false } = options;
   
   console.log(chalk.blue('🚀 Запуск экспорта кода NEIRA Super App...'));
@@ -312,14 +460,27 @@ export async function exportCode(options: {
   // Проверяем наличие code2prompt
   const hasCode2Prompt = await checkCode2Prompt();
   if (!hasCode2Prompt) {
+    console.log(chalk.yellow('\n💡 Способы установки code2prompt:'));
+    console.log(chalk.gray('   npm install -g code2prompt'));
+    console.log(chalk.gray('   yarn global add code2prompt'));
+    console.log(chalk.gray('   pnpm add -g code2prompt'));
+    console.log(chalk.gray('   brew install code2prompt (macOS)'));
     throw new Error(
-      'code2prompt не найден. Установите его: npm install -g code2prompt'
+      'code2prompt не найден. Установите его одним из способов выше.'
     );
   }
   
-  // Находим корень проекта
-  const projectRoot = await findProjectRoot();
-  console.log(chalk.gray(`Корень проекта: ${projectRoot}`));
+  // Пытаемся найти корень проекта NEIRA Super App
+  let projectRoot: string;
+  try {
+    projectRoot = await findProjectRoot();
+    console.log(chalk.gray(`Корень проекта NEIRA Super App: ${projectRoot}`));
+  } catch (error) {
+    // Если не найден Super App, экспортируем текущий проект
+    console.log(chalk.yellow('⚠️  NEIRA Super App не найден, экспортируем текущий проект'));
+    const exportFilePath = await exportCurrentProject({ output, force });
+    return exportFilePath;
+  }
   
   // Получаем динамические пакеты
   const dynamicPackages = await getDynamicPackages(projectRoot);
@@ -341,7 +502,7 @@ export async function exportCode(options: {
     try {
       await fs.access(outputFile);
       console.log(chalk.yellow(`Файл ${outputFileName} уже существует. Используйте --force для перезаписи.`));
-      return;
+      return outputFile;
     } catch {
       // Файл не существует, продолжаем
     }
@@ -376,4 +537,6 @@ export async function exportCode(options: {
       console.log(chalk.gray(`   neira-cli-mcp export ${pkg}`));
     }
   }
+  
+  return outputFile;
 } 
