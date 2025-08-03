@@ -82,11 +82,12 @@ program
       if (pathOrProfile === '.' || pathOrProfile === './' || pathOrProfile === process.cwd()) {
         console.log(chalk.blue('🚀 Экспорт текущего проекта...'));
         
-        // Экспортируем код
+        // Экспортируем код (принудительно текущий проект)
         const exportFilePath = await exportCode({
           profile: 'general',
           output: options.output,
-          force: options.force
+          force: options.force,
+          forceCurrentProject: true
         });
         
         // Автоматически создаем карту репозитория рядом с экспортным файлом

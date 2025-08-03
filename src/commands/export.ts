@@ -603,8 +603,9 @@ export async function exportCode(options: {
   profile: ExportProfile;
   output?: string;
   force?: boolean;
+  forceCurrentProject?: boolean;
 }): Promise<string | void> {
-  const { profile, output, force = false } = options;
+  const { profile, output, force = false, forceCurrentProject = false } = options;
   
   console.log(chalk.blue('🚀 Запуск экспорта кода...'));
   
@@ -617,6 +618,13 @@ export async function exportCode(options: {
     throw new Error(
       'code2prompt не найден. Установите его локально или глобально.'
     );
+  }
+  
+  // Если принудительно запрошен экспорт текущего проекта, пропускаем поиск монорепозитория
+  if (forceCurrentProject) {
+    console.log(chalk.gray('📁 Принудительный экспорт текущего проекта'));
+    const exportFilePath = await exportCurrentProject({ output, force });
+    return exportFilePath;
   }
   
   // Пытаемся найти корень монорепозитория
