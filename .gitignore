@@ -2,8 +2,21 @@ node_modules/
 node_modules/*
 dist/*
 .DS_Store
-neira-cli-mcp-0.3.0.tgz
+neira-cli-mcp-*.tgz
 .yarn
 **/.yarn/*
 .yarn/install-state.gz
-.yarn/install-state.gz
+
+# Temporary files
+.continue/
+.neira/
+.vscode/
+GEMINI.md
+REPOSITORY_MAP.md
+code2prompt
+code2prompt-wrapper.js
+code2prompt_exec.sh
+final-test_MAP.md
+package-lock.json
+test-export_MAP.md
+tmp-check.js
